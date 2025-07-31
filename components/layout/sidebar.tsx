@@ -26,7 +26,7 @@ export default function Sidebar({
       as="nav"
       bg="gray.100"
       p={6}
-      minH="calc(100vh - 64px)"
+      h="100vh"
       overflowY="auto"
       boxShadow="md"
       w={{ base: "full", md: "220px" }}
