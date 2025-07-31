@@ -18,9 +18,9 @@ export default function Header() {
     >
       <Heading size="md">Mortgage CRM</Heading>
       <Spacer />
-      <Button onClick={() => signOut()} colorScheme="red" variant="outline" size="sm">
-        Logout
-      </Button>
+      <Button onClick={() => signOut({ callbackUrl: "/signin" })}>
+      Logout
+    </Button>
     </Flex>
   );
 }

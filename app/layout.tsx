@@ -1,11 +1,8 @@
 import { Inter } from "next/font/google";
-import Provider from "./provider";
+import Provider from "./provider"; // adjust path if needed
 import type { ReactNode } from "react";
 
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-});
+const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
