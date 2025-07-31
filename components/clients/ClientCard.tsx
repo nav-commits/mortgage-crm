@@ -34,7 +34,7 @@ export default function ClientCard({
             {lastName}
           </Text>
         </Box>
-        <Text color="gray.600">{email}</Text>
+        <Text color="gray.600">Email: {email}</Text>
         <Badge colorScheme={statusColorMap[status]}>{status}</Badge>
       </VStack>
     </Box>
