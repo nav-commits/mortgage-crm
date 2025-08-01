@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+"use client";
+
 import {
   Box,
   Heading,
@@ -8,24 +8,82 @@ import {
   VStack,
   HStack,
   Button,
+  useToast,
+  Spinner,
+  useDisclosure,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from "@chakra-ui/react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 
-interface ClientDetailPageProps {
-  params: { id: string };
+interface Client {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  status: "LEAD" | "PRE_APPROVAL" | "APPROVED" | "CLOSED";
 }
 
-export default async function ClientDetailPage({
-  params,
-}: ClientDetailPageProps) {
-  const clientId = Number(params.id);
-  if (isNaN(clientId)) return notFound();
+export default function ClientDetailPage() {
+  const { id } = useParams();
+  const clientId = Number(id);
+  const router = useRouter();
+  const toast = useToast();
+  const [client, setClient] = useState<Client | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const client = await prisma.client.findUnique({
-    where: { id: clientId },
-  });
+  const {
+    isOpen: isAlertOpen,
+    onOpen: onAlertOpen,
+    onClose: onAlertClose,
+  } = useDisclosure();
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
-  if (!client) return notFound();
+  useEffect(() => {
+    async function fetchClient() {
+      const res = await fetch(`/api/clients/${clientId}`);
+      if (!res.ok) {
+        setClient(null);
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      setClient(data.client);
+      setLoading(false);
+    }
+
+    fetchClient();
+  }, [clientId]);
+
+  const handleDelete = async () => {
+    const res = await fetch(`/api/clients/${clientId}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      toast({
+        title: "Client deleted.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      router.push("/dashboard");
+    } else {
+      toast({
+        title: "Error deleting client.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
   const statusColorMap = {
     LEAD: "yellow",
@@ -33,6 +91,25 @@ export default async function ClientDetailPage({
     APPROVED: "green",
     CLOSED: "gray",
   } as const;
+
+  if (loading) {
+    return (
+      <Box textAlign="center" mt={10}>
+        <Spinner size="xl" />
+        <Text mt={4}>Loading client...</Text>
+      </Box>
+    );
+  }
+
+  if (!client) {
+    return (
+      <Box textAlign="center" mt={10}>
+        <Text fontSize="lg" color="red.500">
+          Client not found.
+        </Text>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -62,19 +139,47 @@ export default async function ClientDetailPage({
         </Text>
 
         <HStack pt={4}>
-          <Button as={Link} href={`/dashboard`} colorScheme="blue">
-            Edit
-          </Button>
           <Button
             as={Link}
-            href={`/dashboard`}
-            colorScheme="red"
-            variant="outline"
+            href={`/dashboard/clients/${client.id}/edit`}
+            colorScheme="blue"
           >
+            Edit
+          </Button>
+          <Button colorScheme="red" variant="outline" onClick={onAlertOpen}>
             Delete
           </Button>
         </HStack>
       </VStack>
+
+      {/* Alert Dialog */}
+      <AlertDialog
+        isOpen={isAlertOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onAlertClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Client
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete this client? This action cannot be
+              undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onAlertClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 }
