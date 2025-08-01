@@ -1,9 +1,25 @@
 "use client";
 
-import { Flex, Heading, Spacer, Button } from "@chakra-ui/react";
+import {
+  Flex,
+  Heading,
+  Spacer,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Button,
+  Box,
+  Icon,
+  IconButton,
+  useBreakpointValue,
+} from "@chakra-ui/react";
+import { FiChevronDown, FiUser } from "react-icons/fi";
 import { signOut } from "next-auth/react";
-
-export default function Header() {
+import { FiMenu } from "react-icons/fi";
+import Link from "next/link";
+export default function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
+   const showHamburger = useBreakpointValue({ base: true, md: false });
   return (
     <Flex
       as="header"
@@ -16,11 +32,40 @@ export default function Header() {
       top="0"
       zIndex="1000"
     >
-      <Heading size="md">Mortgage CRM</Heading>
+       {showHamburger && (
+        <IconButton
+          aria-label="Open sidebar"
+          icon={<FiMenu />}
+          onClick={onOpenSidebar}
+          mr={4}
+          variant="outline"
+        />
+      )}
+      <Link href="/dashboard">
+        <Heading size="md">
+          Mortgage CRM
+        </Heading>
+      </Link>
       <Spacer />
-      <Button onClick={() => signOut({ callbackUrl: "/signin" })}>
-      Logout
-    </Button>
+      <Menu>
+        <MenuButton
+          as={Button}
+          rightIcon={<Icon as={FiChevronDown} />}
+          variant="outline"
+        >
+          <Flex align="center" gap={2}>
+            <Icon as={FiUser} boxSize={5} />
+            <Box display={{ base: "none", md: "block" }}>Account</Box>
+          </Flex>
+        </MenuButton>
+        <MenuList>
+          <MenuItem>Profile</MenuItem>
+          <MenuItem>Settings</MenuItem>
+          <MenuItem onClick={() => signOut({ callbackUrl: "/signin" })}>
+            Logout
+          </MenuItem>
+        </MenuList>
+      </Menu>
     </Flex>
   );
 }
