@@ -10,10 +10,10 @@ export default function ClientCard({
   lastName,
 }: Client) {
   const statusColorMap = {
-    Lead: "yellow",
-    "Pre-Approval": "blue",
-    Approved: "green",
-    Closed: "gray",
+    "LEAD": "yellow",
+    "PRE_APPROVAL": "blue",
+    "APPROVED": "green",
+    "CLOSED": "gray",
   } as const;
 
   return (

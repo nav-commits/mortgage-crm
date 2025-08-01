@@ -1,5 +1,3 @@
-// app/dashboard/add-client/page.tsx
-
 "use client";
 
 import {
@@ -10,54 +8,126 @@ import {
   Input,
   Button,
   VStack,
+  FormErrorMessage,
+  useToast,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import ReactPhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css"; 
+import { useEffect } from "react";
+
+const clientSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().optional(),
+});
+
+type ClientFormData = z.infer<typeof clientSchema>;
 
 export default function AddClientPage() {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
+  const toast = useToast();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+    watch,
+  } = useForm<ClientFormData>({
+    resolver: zodResolver(clientSchema),
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+useEffect(() => {
+  register("phone");
+}, [register]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const phoneValue = watch("phone") || "";
 
-    // You'd send formData to your API route here (POST /api/clients)
-    console.log("Submitting:", formData);
+  const onSubmit = async (data: ClientFormData) => {
+    try {
+      const res = await fetch("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error("Failed to create client");
+
+      const createdClient = await res.json();
+      console.log("Client created:", createdClient);
+
+      reset();
+      toast({
+        title: "Client added.",
+        description: "The client was added successfully.",
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "There was an error adding the client.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+        position: "top-right",
+      });
+    }
   };
 
   return (
     <Box maxW="500px" mx="auto" mt={10}>
-      <Heading size="lg" mb={6}>Add New Client</Heading>
-      <form onSubmit={handleSubmit}>
+      <Heading size="lg" mb={6}>
+        Add New Client
+      </Heading>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <VStack spacing={4}>
-          <FormControl isRequired>
+          <FormControl isInvalid={!!errors.firstName} isRequired>
             <FormLabel>First Name</FormLabel>
-            <Input name="firstName" onChange={handleChange} />
+            <Input {...register("firstName")} />
+            <FormErrorMessage>{errors.firstName?.message}</FormErrorMessage>
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isInvalid={!!errors.lastName} isRequired>
             <FormLabel>Last Name</FormLabel>
-            <Input name="lastName" onChange={handleChange} />
+            <Input {...register("lastName")} />
+            <FormErrorMessage>{errors.lastName?.message}</FormErrorMessage>
           </FormControl>
 
-          <FormControl isRequired>
+          <FormControl isInvalid={!!errors.email} isRequired>
             <FormLabel>Email</FormLabel>
-            <Input type="email" name="email" onChange={handleChange} />
+            <Input type="email" {...register("email")} />
+            <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
           </FormControl>
-
-          <FormControl>
+          <FormControl isInvalid={!!errors.phone}>
             <FormLabel>Phone</FormLabel>
-            <Input name="phone" onChange={handleChange} />
+            <ReactPhoneInput
+              country={"ca"}
+              value={phoneValue}
+              onChange={(value) => setValue("phone", value, { shouldValidate: true })}
+              inputStyle={{ width: "100%" }}
+              inputProps={{
+                name: "phone",
+                required: false,
+                autoFocus: false,
+              }}
+            />
+            <FormErrorMessage>{errors.phone?.message}</FormErrorMessage>
           </FormControl>
 
-          <Button colorScheme="blue" type="submit" w="full">
+          <Button
+            colorScheme="blue"
+            type="submit"
+            w="full"
+            isLoading={isSubmitting}
+          >
             Save Client
           </Button>
         </VStack>

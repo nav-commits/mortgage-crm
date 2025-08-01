@@ -17,6 +17,7 @@ import {
 import { FiChevronDown, FiUser } from "react-icons/fi";
 import { signOut } from "next-auth/react";
 import { FiMenu } from "react-icons/fi";
+import Link from "next/link";
 export default function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
    const showHamburger = useBreakpointValue({ base: true, md: false });
   return (
@@ -40,7 +41,11 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar: () => void })
           variant="outline"
         />
       )}
-      <Heading size="md">Mortgage CRM</Heading>
+      <Link href="/dashboard">
+        <Heading size="md">
+          Mortgage CRM
+        </Heading>
+      </Link>
       <Spacer />
       <Menu>
         <MenuButton

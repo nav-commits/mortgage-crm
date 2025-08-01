@@ -5,5 +5,5 @@ export interface Client {
   firstName: string;
   lastName: string;
   email: string;
-  status: Exclude<Status, "ALL">; // clients won't have "ALL"
+  status: Exclude<Status, "ALL">;
 }
