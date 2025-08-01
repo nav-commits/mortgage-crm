@@ -23,7 +23,12 @@ import { FiSearch } from "react-icons/fi";
 import { statuses } from "@/types/statuses";
 import ClientCard from "@/components/clients/ClientCard";
 // Icons for statuses
-import { LuUserPlus, LuBadgeCheck, LuThumbsUp, LuFileCheck2 } from "react-icons/lu";
+import {
+  LuUserPlus,
+  LuBadgeCheck,
+  LuThumbsUp,
+  LuFileCheck2,
+} from "react-icons/lu";
 
 const statusIcons: Record<string, React.ReactNode> = {
   ALL: <LuUserPlus />,
@@ -40,7 +45,6 @@ type Client = {
   email: string;
   status: string;
   phone?: string;
-  // add other fields if any
 };
 
 export default function DashboardPage() {
@@ -55,7 +59,7 @@ export default function DashboardPage() {
 
   // Fetch clients from API
   useEffect(() => {
-    if (!session) return; // optionally wait for session to load
+    if (!session) return; 
 
     setLoading(true);
     fetch("/api/clients")
@@ -84,10 +88,15 @@ export default function DashboardPage() {
     return matchesStatus && matchesSearch;
   });
 
-  if (status === "loading") return <Spinner />;
+  if (status === "loading")
+    return (
+      <Box textAlign="center" mt={10}>
+        <Spinner size="xl" />
+        <Text mt={4}>Loading Dashboard...</Text>
+      </Box>
+    );
 
-  if (!session)
-    return <Text>Please sign in to view your clients.</Text>;
+  if (!session) return <Text>Please sign in to view your clients.</Text>;
 
   return (
     <Box>
@@ -120,7 +129,6 @@ export default function DashboardPage() {
           />
         </InputGroup>
       </FormControl>
-
       {/* Tabs with Icons */}
       <Tabs
         mb={6}
@@ -152,10 +160,12 @@ export default function DashboardPage() {
           borderRadius="1px"
         />
       </Tabs>
-
       {/* Client Cards */}
       {loading ? (
-        <Spinner />
+        <Box textAlign="center" mt={10}>
+          <Spinner size="xl" />
+          <Text mt={4}>Loading client...</Text>
+        </Box>
       ) : error ? (
         <Text color="red.500">Error: {error}</Text>
       ) : filteredClients.length === 0 ? (
