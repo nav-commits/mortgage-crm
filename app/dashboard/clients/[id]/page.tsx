@@ -22,6 +22,13 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
+interface File {
+  id: number;
+  fileName: string;
+  fileUrl: string;
+  uploadedAt: string;
+}
+
 interface Client {
   id: number;
   firstName: string;
@@ -29,6 +36,7 @@ interface Client {
   email: string;
   phone: string | null;
   status: "LEAD" | "PRE_APPROVAL" | "APPROVED" | "CLOSED";
+  files: File[];
 }
 
 export default function ClientDetailPage() {
@@ -137,6 +145,31 @@ export default function ClientDetailPage() {
         <Text>
           <strong>Phone:</strong> {client.phone || "N/A"}
         </Text>
+
+        {/* Display uploaded files */}
+        <Box mt={8} w="100%">
+          <Heading size="sm" mb={3}>
+            Uploaded Files
+          </Heading>
+
+          {client.files.length === 0 && <Text>No files uploaded.</Text>}
+
+          {client.files.length > 0 && (
+            <VStack align="start" spacing={2}>
+              {client.files.map((file) => (
+                <Link
+                  key={file.id}
+                  href={file.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  color="blue.500"
+                >
+                  {file.fileName}
+                </Link>
+              ))}
+            </VStack>
+          )}
+        </Box>
 
         <HStack pt={4}>
           <Button

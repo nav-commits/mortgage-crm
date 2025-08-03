@@ -4,27 +4,39 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-    req: Request,
-    { params }: { params: { id: string } }
-  ) {
-    const clientId = Number(params.id);
-    if (isNaN(clientId)) {
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
-    }
-  
-    const client = await prisma.client.findUnique({
-      where: { id: clientId },
-    });
-  
-    if (!client) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
-    }
-  
-    return NextResponse.json({ client });
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  
 
-// PATCH to update client
+  const clientId = Number(params.id);
+  if (isNaN(clientId)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+  });
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: { files: true },
+  });
+
+  if (!client || client.userId !== user.id) {
+    return NextResponse.json({ error: "Client not found or unauthorized" }, { status: 404 });
+  }
+
+  return NextResponse.json({ client });
+}
+
 export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
@@ -43,11 +55,15 @@ export async function PATCH(
     where: { email: session.user.email },
   });
 
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
   const client = await prisma.client.findUnique({
     where: { id },
   });
 
-  if (!client || client.userId !== user?.id) {
+  if (!client || client.userId !== user.id) {
     return NextResponse.json({ error: "Client not found or unauthorized" }, { status: 404 });
   }
 
@@ -66,7 +82,6 @@ export async function PATCH(
   return NextResponse.json(updated);
 }
 
-// DELETE client
 export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
@@ -83,11 +98,15 @@ export async function DELETE(
     where: { email: session.user.email },
   });
 
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
   const client = await prisma.client.findUnique({
     where: { id },
   });
 
-  if (!client || client.userId !== user?.id) {
+  if (!client || client.userId !== user.id) {
     return NextResponse.json({ error: "Client not found or unauthorized" }, { status: 404 });
   }
 
