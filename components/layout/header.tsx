@@ -14,12 +14,14 @@ import {
   IconButton,
   useBreakpointValue,
 } from "@chakra-ui/react";
-import { FiChevronDown, FiUser } from "react-icons/fi";
-import { signOut } from "next-auth/react";
-import { FiMenu } from "react-icons/fi";
+import { FiChevronDown, FiUser, FiMenu } from "react-icons/fi";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
+
 export default function Header({ onOpenSidebar }: { onOpenSidebar: () => void }) {
-   const showHamburger = useBreakpointValue({ base: true, md: false });
+  const { data: session } = useSession();
+  const showHamburger = useBreakpointValue({ base: true, md: false });
+
   return (
     <Flex
       as="header"
@@ -32,7 +34,7 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar: () => void })
       top="0"
       zIndex="1000"
     >
-       {showHamburger && (
+      {showHamburger && (
         <IconButton
           aria-label="Open sidebar"
           icon={<FiMenu />}
@@ -42,9 +44,7 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar: () => void })
         />
       )}
       <Link href="/dashboard">
-        <Heading size="md">
-          Mortgage CRM
-        </Heading>
+        <Heading size="md">Mortgage CRM</Heading>
       </Link>
       <Spacer />
       <Menu>
@@ -55,7 +55,9 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar: () => void })
         >
           <Flex align="center" gap={2}>
             <Icon as={FiUser} boxSize={5} />
-            <Box display={{ base: "none", md: "block" }}>Account</Box>
+            <Box display={{ base: "none", md: "block" }}>
+              {session?.user?.name ?? "Account"}
+            </Box>
           </Flex>
         </MenuButton>
         <MenuList>
