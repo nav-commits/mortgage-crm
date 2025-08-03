@@ -5,7 +5,7 @@ A simple CRM for mortgage brokers to manage clients, upload files, and track sta
 - Next.js 14 (App Router, TypeScript)  
 - Prisma ORM  
 - MySQL  
-- UploadThing (file uploads)  
+- S3 bucket (file uploads)  
 - Chakra UI (styling)  
 - NextAuth.js (authentication)  
 
@@ -15,7 +15,7 @@ A simple CRM for mortgage brokers to manage clients, upload files, and track sta
 
 - 🔐 Authentication via NextAuth  
 - 👤 Client Management (CRUD)  
-- 🗂 File Uploads per Client (UploadThing)  
+- 🗂 File Uploads per Client AWS s3 bucket  
 - 📊 Dashboard with client statuses  
 - 🔍 Search & filter clients
 ---
