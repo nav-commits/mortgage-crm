@@ -2,6 +2,18 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
+
+const s3 = new S3Client({ region: process.env.AWS_REGION });
+
+async function deleteFromS3(fileKey: string) {
+  const bucket = process.env.AWS_BUCKET_NAME!;
+  const command = new DeleteObjectCommand({
+    Bucket: bucket,
+    Key: fileKey,
+  });
+  await s3.send(command);
+}
 
 export async function GET(
   req: Request,
@@ -104,15 +116,31 @@ export async function DELETE(
 
   const client = await prisma.client.findUnique({
     where: { id },
+    include: { files: true },
   });
 
   if (!client || client.userId !== user.id) {
     return NextResponse.json({ error: "Client not found or unauthorized" }, { status: 404 });
   }
 
+  for (const file of client.files) {
+    const key = new URL(file.fileUrl).pathname.slice(1);
+    try {
+      await deleteFromS3(key);
+    } catch (err) {
+      console.error(`Failed to delete S3 file: ${key}`, err);
+    }
+  }
+
+  // Delete files from DB
+  await prisma.file.deleteMany({
+    where: { clientId: id },
+  });
+
+  // Delete client
   await prisma.client.delete({
     where: { id },
   });
 
-  return NextResponse.json({ message: "Client deleted" });
+  return NextResponse.json({ message: "Client and files deleted" });
 }
